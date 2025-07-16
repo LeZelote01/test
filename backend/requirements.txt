@@ -38,8 +38,9 @@ eth-account==0.10.0
 py-solc-x==1.1.1
 
 # Post-Quantum Cryptography - Certified Libraries
-# Using Open Quantum Safe (OQS) for NIST-approved algorithms
-oqs-python==0.9.0
+# Using pqcrypto for NIST-approved algorithms
+pqcrypto==0.3.4
+liboqs-python==0.14.0
 pycryptodome==3.20.0
 
 # Monitoring & Logging
