@@ -35,12 +35,11 @@ transformers==4.37.0
 # Blockchain
 web3==6.15.1
 eth-account==0.10.0
-solcx==2.0.2
+py-solc-x==1.1.1
 
 # Post-Quantum Cryptography
-pqcrypto==0.1.0
-kyber-py==1.0.0
-dilithium-py==1.0.0
+# Note: These will be implemented using custom libraries
+pycryptodome==3.20.0
 
 # Monitoring & Logging
 python-json-logger==2.0.7
