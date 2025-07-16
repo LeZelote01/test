@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChartBarIcon, TrendingUpIcon, TrendingDownIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 const Analytics = () => {
