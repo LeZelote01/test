@@ -198,7 +198,7 @@ const Analytics = () => {
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
                     {threat.trend === 'up' ? (
-                      <TrendingUpIcon className="h-5 w-5 text-red-500" />
+                      <ArrowTrendingUpIcon className="h-5 w-5 text-red-500" />
                     ) : (
                       <TrendingDownIcon className="h-5 w-5 text-green-500" />
                     )}
