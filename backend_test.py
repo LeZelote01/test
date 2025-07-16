@@ -12,9 +12,6 @@ import os
 from typing import Dict, Any, Optional
 import uuid
 
-# Add crypto-core to path for testing
-sys.path.append('/app/crypto-core')
-
 # Configuration - Use environment variable for backend URL
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
 TEST_USER_DATA = {
