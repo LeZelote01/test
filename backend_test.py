@@ -464,6 +464,164 @@ class QuantumGateBackendTester:
         except Exception as e:
             self.log_test("System Health", False, f"Exception: {str(e)}")
     
+    def test_post_quantum_algorithms_info(self):
+        """Test getting post-quantum algorithms information."""
+        try:
+            response = self.make_request("GET", "/api/encryption/pq-algorithms")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, dict) and "algorithms" in data:
+                    algorithms = data["algorithms"]
+                    expected_algorithms = ["ml_kem", "kyber", "ml_dsa", "dilithium", "falcon", "sphincs", "hqc", "mceliece", "hybrid"]
+                    
+                    found_algorithms = list(algorithms.keys())
+                    if any(alg in found_algorithms for alg in expected_algorithms):
+                        self.log_test("Post-Quantum Algorithms Info", True, f"Found {len(algorithms)} PQ algorithms")
+                    else:
+                        self.log_test("Post-Quantum Algorithms Info", False, "No expected PQ algorithms found", 
+                                    {"found": found_algorithms, "expected": expected_algorithms})
+                else:
+                    self.log_test("Post-Quantum Algorithms Info", False, "Invalid PQ algorithms response", data)
+            else:
+                self.log_test("Post-Quantum Algorithms Info", False, f"HTTP {response.status_code}", 
+                            {"response": response.text})
+        except Exception as e:
+            self.log_test("Post-Quantum Algorithms Info", False, f"Exception: {str(e)}")
+    
+    def test_ml_kem_kyber_variants(self):
+        """Test ML-KEM (Kyber) algorithm variants."""
+        try:
+            variants = ["kyber512", "kyber768", "kyber1024"]
+            for variant in variants:
+                # Test key generation
+                key_data = {
+                    "algorithm": "kyber",
+                    "variant": variant,
+                    "purpose": "encryption"
+                }
+                response = self.make_request("POST", "/api/encryption/generate-keys", 
+                                           key_data, auth_required=True)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("public_key") and data.get("algorithm") == "kyber":
+                        self.log_test(f"ML-KEM {variant} Key Generation", True, f"Generated {variant} keypair")
+                    else:
+                        self.log_test(f"ML-KEM {variant} Key Generation", False, "Invalid key generation response", data)
+                else:
+                    self.log_test(f"ML-KEM {variant} Key Generation", False, f"HTTP {response.status_code}", 
+                                {"response": response.text})
+        except Exception as e:
+            self.log_test("ML-KEM Variants Test", False, f"Exception: {str(e)}")
+    
+    def test_pq_dependencies(self):
+        """Test post-quantum cryptography dependencies."""
+        try:
+            # Test if pqcrypto library is available
+            try:
+                import pqcrypto
+                self.log_test("pqcrypto Library", True, f"pqcrypto available")
+            except ImportError as e:
+                self.log_test("pqcrypto Library", False, f"pqcrypto not available: {e}")
+            
+            # Test if liboqs-python is available
+            try:
+                import oqs
+                self.log_test("liboqs-python Library", True, f"liboqs-python available")
+            except ImportError as e:
+                self.log_test("liboqs-python Library", False, f"liboqs-python not available: {e}")
+                
+        except Exception as e:
+            self.log_test("PQ Dependencies Test", False, f"Exception: {str(e)}")
+    
+    def test_pq_crypto_core_modules(self):
+        """Test post-quantum crypto-core modules."""
+        try:
+            # Test if crypto-core modules are accessible
+            modules_to_test = [
+                "post_quantum.pq_manager",
+                "post_quantum.kyber", 
+                "post_quantum.dilithium",
+                "post_quantum.falcon",
+                "post_quantum.sphincs",
+                "post_quantum.hqc",
+                "post_quantum.mceliece"
+            ]
+            
+            for module_name in modules_to_test:
+                try:
+                    __import__(module_name)
+                    self.log_test(f"Crypto Module {module_name}", True, f"Module {module_name} accessible")
+                except ImportError as e:
+                    self.log_test(f"Crypto Module {module_name}", False, f"Module {module_name} not accessible: {e}")
+                    
+        except Exception as e:
+            self.log_test("Crypto Core Modules Test", False, f"Exception: {str(e)}")
+    
+    def test_comprehensive_pq_encryption(self):
+        """Test comprehensive post-quantum encryption with multiple algorithms."""
+        try:
+            test_data = "Sensitive quantum research data requiring post-quantum protection"
+            algorithms_to_test = [
+                ("kyber", "kyber1024"),
+                ("hqc", "hqc_256"),
+                ("mceliece", "mceliece348864")
+            ]
+            
+            for algorithm, variant in algorithms_to_test:
+                encryption_data = {
+                    "data": test_data,
+                    "algorithm": algorithm,
+                    "variant": variant,
+                    "options": {}
+                }
+                response = self.make_request("POST", "/api/encryption/encrypt", 
+                                           encryption_data, auth_required=True)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("encrypted_data") and data.get("algorithm") == algorithm:
+                        self.log_test(f"PQ Encryption {algorithm} ({variant})", True, f"{algorithm} encryption successful")
+                    else:
+                        self.log_test(f"PQ Encryption {algorithm} ({variant})", False, "Invalid encryption response", data)
+                else:
+                    self.log_test(f"PQ Encryption {algorithm} ({variant})", False, f"HTTP {response.status_code}", 
+                                {"response": response.text})
+        except Exception as e:
+            self.log_test("Comprehensive PQ Encryption", False, f"Exception: {str(e)}")
+    
+    def test_comprehensive_pq_signing(self):
+        """Test comprehensive post-quantum signing with multiple algorithms."""
+        try:
+            test_data = "Important document requiring quantum-safe digital signature"
+            algorithms_to_test = [
+                ("dilithium", "dilithium3"),
+                ("falcon", "falcon_1024"),
+                ("sphincs", "sphincs_sha2_256f_simple")
+            ]
+            
+            for algorithm, variant in algorithms_to_test:
+                signing_data = {
+                    "data": test_data,
+                    "algorithm": algorithm,
+                    "variant": variant
+                }
+                response = self.make_request("POST", "/api/encryption/sign", 
+                                           signing_data, auth_required=True)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("signature") and data.get("algorithm") == algorithm:
+                        self.log_test(f"PQ Signing {algorithm} ({variant})", True, f"{algorithm} signing successful")
+                    else:
+                        self.log_test(f"PQ Signing {algorithm} ({variant})", False, "Invalid signing response", data)
+                else:
+                    self.log_test(f"PQ Signing {algorithm} ({variant})", False, f"HTTP {response.status_code}", 
+                                {"response": response.text})
+        except Exception as e:
+            self.log_test("Comprehensive PQ Signing", False, f"Exception: {str(e)}")
+
     def test_user_logout(self):
         """Test user logout."""
         try:
