@@ -649,23 +649,45 @@ class QuantumGateBackendTester:
         self.test_health_endpoint()
         self.test_root_endpoint()
         
+        # Post-quantum dependencies and modules tests
+        print("\n🔬 Testing Post-Quantum Dependencies...")
+        self.test_pq_dependencies()
+        self.test_pq_crypto_core_modules()
+        
         # Authentication tests
+        print("\n🔐 Testing Authentication...")
         self.test_user_registration()
         self.test_user_login()
         
         if self.access_token:
-            # Authenticated endpoint tests
-            self.test_get_current_user()
+            # Post-quantum algorithm tests
+            print("\n⚛️ Testing Post-Quantum Algorithms...")
+            self.test_post_quantum_algorithms_info()
+            self.test_ml_kem_kyber_variants()
             
             # Encryption tests
+            print("\n🔒 Testing Encryption...")
             self.test_encryption_algorithms()
             self.test_kyber_encryption()
             self.test_aes_encryption()
+            self.test_comprehensive_pq_encryption()
+            
+            # Signing tests
+            print("\n✍️ Testing Digital Signatures...")
             self.test_dilithium_signing()
+            self.test_comprehensive_pq_signing()
+            
+            # Key generation and management
+            print("\n🗝️ Testing Key Management...")
             self.test_key_generation()
             self.test_encryption_stats()
             
+            # Authenticated endpoint tests
+            print("\n👤 Testing User Management...")
+            self.test_get_current_user()
+            
             # Dashboard tests
+            print("\n📊 Testing Dashboard...")
             self.test_dashboard_overview()
             self.test_security_status()
             self.test_bug_bounty_dashboard()
