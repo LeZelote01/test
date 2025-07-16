@@ -52,7 +52,7 @@ const Analytics = () => {
               {trend === 'up' ? (
                 <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
               ) : (
-                <TrendingDownIcon className="h-4 w-4 text-red-500" />
+                <ArrowTrendingDownIcon className="h-4 w-4 text-red-500" />
               )}
               <span className={`text-sm font-medium ml-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
                 {change}
