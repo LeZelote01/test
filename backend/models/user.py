@@ -102,10 +102,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_user_dict(user_data: UserCreate) -> dict:
     """Create user dictionary for database insertion."""
+    import uuid
     user_dict = user_data.dict()
+    user_dict['id'] = str(uuid.uuid4())  # Add UUID for id field
     user_dict['password_hash'] = hash_password(user_dict.pop('password'))
     user_dict['role'] = UserRole.USER
     user_dict['is_active'] = True
     user_dict['is_verified'] = False
     user_dict['two_factor_enabled'] = False
+    user_dict['created_at'] = datetime.utcnow()
+    user_dict['updated_at'] = datetime.utcnow()
     return user_dict
