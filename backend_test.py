@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
 Comprehensive Backend Testing for QuantumGate
-Tests all backend APIs and functionality
+Tests all backend APIs and functionality including Post-Quantum Cryptography
 """
 import asyncio
 import json
 import requests
 import time
+import sys
+import os
 from typing import Dict, Any, Optional
 import uuid
 
-# Configuration
-BACKEND_URL = "http://localhost:8001"
+# Add crypto-core to path for testing
+sys.path.append('/app/crypto-core')
+
+# Configuration - Use environment variable for backend URL
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
 TEST_USER_DATA = {
     "username": "quantum_researcher",
     "email": "researcher@quantumgate.com", 
