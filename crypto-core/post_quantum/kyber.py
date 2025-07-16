@@ -277,6 +277,7 @@ def kyber_encapsulate(public_key_str: str, variant: str = "kyber1024") -> Tuple[
 def kyber_decapsulate(private_key_str: str, ciphertext_str: str, 
                      variant: str = "kyber1024") -> str:
     """Decapsulate using Kyber and return shared secret as base64."""
+    import base64
     kyber = KyberKEM(variant)
     private_key = kyber.deserialize_private_key(private_key_str)
     ciphertext = kyber.deserialize_ciphertext(ciphertext_str)
