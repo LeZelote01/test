@@ -522,11 +522,11 @@ class QuantumGateBackendTester:
             except ImportError as e:
                 self.log_test("pqcrypto Library", False, f"pqcrypto not available: {e}")
             
-            # Test if liboqs-python is available
+            # Test if liboqs-python is available - skip if problematic
             try:
                 import oqs
                 self.log_test("liboqs-python Library", True, f"liboqs-python available")
-            except ImportError as e:
+            except Exception as e:
                 self.log_test("liboqs-python Library", False, f"liboqs-python not available: {e}")
                 
         except Exception as e:
@@ -535,7 +535,7 @@ class QuantumGateBackendTester:
     def test_pq_crypto_core_modules(self):
         """Test post-quantum crypto-core modules."""
         try:
-            # Test if crypto-core modules are accessible
+            # Test if crypto-core modules are accessible - skip if not available
             modules_to_test = [
                 "post_quantum.pq_manager",
                 "post_quantum.kyber", 
