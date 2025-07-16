@@ -121,7 +121,7 @@ const Analytics = () => {
           value="99.2%"
           change="+0.5%"
           trend="up"
-          icon={TrendingUpIcon}
+          icon={ArrowTrendingUpIcon}
         />
       </div>
 
