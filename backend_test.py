@@ -729,7 +729,9 @@ class QuantumGateBackendTester:
         print("\n🎯 CRITICAL FUNCTIONALITY STATUS:")
         critical_tests = [
             "Health Check", "User Registration", "User Login", 
-            "Kyber Encryption", "Dashboard Overview"
+            "pqcrypto Library", "Crypto Module post_quantum.pq_manager",
+            "ML-KEM kyber512 Key Generation", "PQ Encryption kyber (kyber1024)",
+            "PQ Signing dilithium (dilithium3)", "Dashboard Overview"
         ]
         
         for test_name in critical_tests:
