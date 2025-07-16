@@ -1,56 +1,60 @@
 """
-ML-KEM (Kyber) post-quantum key encapsulation mechanism implementation.
+HQC (Hamming Quasi-Cyclic) post-quantum key encapsulation mechanism implementation.
 This uses the certified pqcrypto library for NIST-approved algorithms.
+HQC was selected by NIST in March 2025 as a backup to ML-KEM.
 """
 import base64
 import logging
 from typing import Tuple, Optional, Dict, Any
 
-from pqcrypto.kem import ml_kem_512, ml_kem_768, ml_kem_1024
+from pqcrypto.kem import hqc_128, hqc_192, hqc_256
 
 logger = logging.getLogger(__name__)
 
-class KyberVariant:
-    """Kyber/ML-KEM variant configurations."""
+class HQCVariant:
+    """HQC variant configurations."""
     
-    KYBER_512 = {
-        "name": "ML-KEM-512",
-        "module": ml_kem_512,
+    HQC_128 = {
+        "name": "HQC-128",
+        "module": hqc_128,
         "security_level": 128,
-        "public_key_size": ml_kem_512.PUBLIC_KEY_SIZE,
-        "private_key_size": ml_kem_512.SECRET_KEY_SIZE,
-        "ciphertext_size": ml_kem_512.CIPHERTEXT_SIZE,
-        "shared_secret_size": ml_kem_512.PLAINTEXT_SIZE,
-        "nist_level": 1
+        "public_key_size": hqc_128.PUBLIC_KEY_SIZE,
+        "private_key_size": hqc_128.SECRET_KEY_SIZE,
+        "ciphertext_size": hqc_128.CIPHERTEXT_SIZE,
+        "shared_secret_size": hqc_128.PLAINTEXT_SIZE,
+        "nist_level": 1,
+        "description": "Code-based cryptography using error-correcting codes"
     }
     
-    KYBER_768 = {
-        "name": "ML-KEM-768",
-        "module": ml_kem_768,
+    HQC_192 = {
+        "name": "HQC-192",
+        "module": hqc_192,
         "security_level": 192,
-        "public_key_size": ml_kem_768.PUBLIC_KEY_SIZE,
-        "private_key_size": ml_kem_768.SECRET_KEY_SIZE,
-        "ciphertext_size": ml_kem_768.CIPHERTEXT_SIZE,
-        "shared_secret_size": ml_kem_768.PLAINTEXT_SIZE,
-        "nist_level": 3
+        "public_key_size": hqc_192.PUBLIC_KEY_SIZE,
+        "private_key_size": hqc_192.SECRET_KEY_SIZE,
+        "ciphertext_size": hqc_192.CIPHERTEXT_SIZE,
+        "shared_secret_size": hqc_192.PLAINTEXT_SIZE,
+        "nist_level": 3,
+        "description": "Code-based cryptography using error-correcting codes"
     }
     
-    KYBER_1024 = {
-        "name": "ML-KEM-1024",
-        "module": ml_kem_1024,
+    HQC_256 = {
+        "name": "HQC-256",
+        "module": hqc_256,
         "security_level": 256,
-        "public_key_size": ml_kem_1024.PUBLIC_KEY_SIZE,
-        "private_key_size": ml_kem_1024.SECRET_KEY_SIZE,
-        "ciphertext_size": ml_kem_1024.CIPHERTEXT_SIZE,
-        "shared_secret_size": ml_kem_1024.PLAINTEXT_SIZE,
-        "nist_level": 5
+        "public_key_size": hqc_256.PUBLIC_KEY_SIZE,
+        "private_key_size": hqc_256.SECRET_KEY_SIZE,
+        "ciphertext_size": hqc_256.CIPHERTEXT_SIZE,
+        "shared_secret_size": hqc_256.PLAINTEXT_SIZE,
+        "nist_level": 5,
+        "description": "Code-based cryptography using error-correcting codes"
     }
 
-class KyberKEM:
-    """ML-KEM (Kyber) Key Encapsulation Mechanism using certified pqcrypto library."""
+class HQCKEM:
+    """HQC Key Encapsulation Mechanism using certified pqcrypto library."""
     
-    def __init__(self, variant: str = "kyber1024"):
-        """Initialize ML-KEM with specified variant."""
+    def __init__(self, variant: str = "hqc_256"):
+        """Initialize HQC with specified variant."""
         self.variant = variant
         self.config = self._get_config(variant)
         self.module = self.config["module"]
@@ -58,24 +62,24 @@ class KyberKEM:
         logger.info(f"Initialized {self.config['name']} with security level {self.config['security_level']}")
         
     def _get_config(self, variant: str) -> Dict[str, Any]:
-        """Get configuration for specified ML-KEM variant."""
+        """Get configuration for specified HQC variant."""
         variant_map = {
-            "kyber512": KyberVariant.KYBER_512,
-            "kyber768": KyberVariant.KYBER_768,
-            "kyber1024": KyberVariant.KYBER_1024,
-            "ml_kem_512": KyberVariant.KYBER_512,
-            "ml_kem_768": KyberVariant.KYBER_768,
-            "ml_kem_1024": KyberVariant.KYBER_1024
+            "hqc_128": HQCVariant.HQC_128,
+            "hqc_192": HQCVariant.HQC_192,
+            "hqc_256": HQCVariant.HQC_256,
+            "hqc128": HQCVariant.HQC_128,
+            "hqc192": HQCVariant.HQC_192,
+            "hqc256": HQCVariant.HQC_256
         }
         
         if variant not in variant_map:
-            raise ValueError(f"Unsupported ML-KEM/Kyber variant: {variant}. "
+            raise ValueError(f"Unsupported HQC variant: {variant}. "
                            f"Supported variants: {list(variant_map.keys())}")
         
         return variant_map[variant]
     
     def generate_keypair(self) -> Tuple[bytes, bytes]:
-        """Generate an ML-KEM keypair."""
+        """Generate an HQC keypair."""
         try:
             public_key, private_key = self.module.generate_keypair()
             
@@ -86,7 +90,7 @@ class KyberKEM:
             return public_key, private_key
             
         except Exception as e:
-            logger.error(f"ML-KEM keypair generation failed: {e}")
+            logger.error(f"HQC keypair generation failed: {e}")
             raise
     
     def encapsulate(self, public_key: bytes) -> Tuple[bytes, bytes]:
@@ -98,14 +102,14 @@ class KyberKEM:
             
             ciphertext, shared_secret = self.module.encrypt(public_key)
             
-            logger.info(f"ML-KEM encapsulation completed")
+            logger.info(f"HQC encapsulation completed")
             logger.debug(f"Ciphertext: {len(ciphertext)} bytes, "
                         f"Shared secret: {len(shared_secret)} bytes")
             
             return ciphertext, shared_secret
             
         except Exception as e:
-            logger.error(f"ML-KEM encapsulation failed: {e}")
+            logger.error(f"HQC encapsulation failed: {e}")
             raise
     
     def decapsulate(self, private_key: bytes, ciphertext: bytes) -> bytes:
@@ -121,13 +125,13 @@ class KyberKEM:
             
             shared_secret = self.module.decrypt(private_key, ciphertext)
             
-            logger.info(f"ML-KEM decapsulation completed")
+            logger.info(f"HQC decapsulation completed")
             logger.debug(f"Shared secret: {len(shared_secret)} bytes")
             
             return shared_secret
             
         except Exception as e:
-            logger.error(f"ML-KEM decapsulation failed: {e}")
+            logger.error(f"HQC decapsulation failed: {e}")
             raise
     
     def get_key_sizes(self) -> Dict[str, int]:
@@ -148,8 +152,12 @@ class KyberKEM:
         return self.config["nist_level"]
     
     def get_algorithm_name(self) -> str:
-        """Get the official algorithm name."""
+        """Get the algorithm name."""
         return self.config["name"]
+    
+    def get_description(self) -> str:
+        """Get algorithm description."""
+        return self.config["description"]
     
     def serialize_public_key(self, public_key: bytes) -> str:
         """Serialize public key to base64 string."""
@@ -195,111 +203,118 @@ class KyberKEM:
         except Exception as e:
             raise ValueError(f"Invalid shared secret format: {e}")
 
-# Convenience functions for backward compatibility
-def generate_kyber_keypair(variant: str = "kyber1024") -> Tuple[str, str]:
-    """Generate ML-KEM keypair and return as base64 strings."""
-    kyber = KyberKEM(variant)
-    public_key, private_key = kyber.generate_keypair()
+# Convenience functions
+def generate_hqc_keypair(variant: str = "hqc_256") -> Tuple[str, str]:
+    """Generate HQC keypair and return as base64 strings."""
+    hqc = HQCKEM(variant)
+    public_key, private_key = hqc.generate_keypair()
     
     return (
-        kyber.serialize_public_key(public_key),
-        kyber.serialize_private_key(private_key)
+        hqc.serialize_public_key(public_key),
+        hqc.serialize_private_key(private_key)
     )
 
-def kyber_encapsulate(public_key_str: str, variant: str = "kyber1024") -> Tuple[str, str]:
-    """Encapsulate using ML-KEM and return ciphertext and shared secret as base64."""
-    kyber = KyberKEM(variant)
-    public_key = kyber.deserialize_public_key(public_key_str)
+def hqc_encapsulate(public_key_str: str, variant: str = "hqc_256") -> Tuple[str, str]:
+    """Encapsulate using HQC and return ciphertext and shared secret as base64."""
+    hqc = HQCKEM(variant)
+    public_key = hqc.deserialize_public_key(public_key_str)
     
-    ciphertext, shared_secret = kyber.encapsulate(public_key)
+    ciphertext, shared_secret = hqc.encapsulate(public_key)
     
     return (
-        kyber.serialize_ciphertext(ciphertext),
-        kyber.serialize_shared_secret(shared_secret)
+        hqc.serialize_ciphertext(ciphertext),
+        hqc.serialize_shared_secret(shared_secret)
     )
 
-def kyber_decapsulate(private_key_str: str, ciphertext_str: str, 
-                     variant: str = "kyber1024") -> str:
-    """Decapsulate using ML-KEM and return shared secret as base64."""
-    kyber = KyberKEM(variant)
-    private_key = kyber.deserialize_private_key(private_key_str)
-    ciphertext = kyber.deserialize_ciphertext(ciphertext_str)
+def hqc_decapsulate(private_key_str: str, ciphertext_str: str, 
+                   variant: str = "hqc_256") -> str:
+    """Decapsulate using HQC and return shared secret as base64."""
+    hqc = HQCKEM(variant)
+    private_key = hqc.deserialize_private_key(private_key_str)
+    ciphertext = hqc.deserialize_ciphertext(ciphertext_str)
     
-    shared_secret = kyber.decapsulate(private_key, ciphertext)
+    shared_secret = hqc.decapsulate(private_key, ciphertext)
     
-    return kyber.serialize_shared_secret(shared_secret)
+    return hqc.serialize_shared_secret(shared_secret)
 
-def get_kyber_info(variant: str = "kyber1024") -> Dict[str, Any]:
-    """Get information about ML-KEM variant."""
-    kyber = KyberKEM(variant)
+def get_hqc_info(variant: str = "hqc_256") -> Dict[str, Any]:
+    """Get information about HQC variant."""
+    hqc = HQCKEM(variant)
     
     return {
         "variant": variant,
-        "algorithm_name": kyber.get_algorithm_name(),
-        "security_level": kyber.get_security_level(),
-        "nist_level": kyber.get_nist_level(),
-        "key_sizes": kyber.get_key_sizes(),
+        "algorithm_name": hqc.get_algorithm_name(),
+        "security_level": hqc.get_security_level(),
+        "nist_level": hqc.get_nist_level(),
+        "key_sizes": hqc.get_key_sizes(),
+        "description": hqc.get_description(),
         "quantum_resistant": True,
         "algorithm_type": "Key Encapsulation Mechanism",
-        "standardization": "NIST FIPS 203",
-        "description": "NIST-standardized post-quantum key encapsulation mechanism"
+        "cryptographic_base": "Error-correcting codes",
+        "standardization": "NIST 2025 selection as ML-KEM backup",
+        "advantages": [
+            "Diversity from lattice-based algorithms",
+            "Code-based cryptography foundation",
+            "Alternative to ML-KEM for backup security"
+        ]
     }
 
-def get_supported_kyber_variants() -> Dict[str, Dict[str, Any]]:
-    """Get all supported ML-KEM variants."""
+def get_supported_hqc_variants() -> Dict[str, Dict[str, Any]]:
+    """Get all supported HQC variants."""
     return {
-        "kyber512": {
-            "name": "ML-KEM-512",
+        "hqc_128": {
+            "name": "HQC-128",
             "security_level": 128,
             "nist_level": 1,
-            "key_sizes": KyberVariant.KYBER_512
+            "key_sizes": HQCVariant.HQC_128
         },
-        "kyber768": {
-            "name": "ML-KEM-768",
+        "hqc_192": {
+            "name": "HQC-192",
             "security_level": 192,
             "nist_level": 3,
-            "key_sizes": KyberVariant.KYBER_768
+            "key_sizes": HQCVariant.HQC_192
         },
-        "kyber1024": {
-            "name": "ML-KEM-1024",
+        "hqc_256": {
+            "name": "HQC-256",
             "security_level": 256,
             "nist_level": 5,
-            "key_sizes": KyberVariant.KYBER_1024
+            "key_sizes": HQCVariant.HQC_256
         }
     }
 
 # Example usage and testing
 if __name__ == "__main__":
-    print("Testing ML-KEM (Kyber) certified implementation...")
+    print("Testing HQC certified implementation...")
     
     # Test all variants
-    for variant in ["kyber512", "kyber768", "kyber1024"]:
+    for variant in ["hqc_128", "hqc_192", "hqc_256"]:
         print(f"\n=== Testing {variant} ===")
         
         # Generate keypair
-        public_key, private_key = generate_kyber_keypair(variant)
+        public_key, private_key = generate_hqc_keypair(variant)
         print(f"Public key: {public_key[:50]}...")
         print(f"Private key: {private_key[:50]}...")
         
         # Encapsulate
-        ciphertext, shared_secret1 = kyber_encapsulate(public_key, variant)
+        ciphertext, shared_secret1 = hqc_encapsulate(public_key, variant)
         print(f"Ciphertext: {ciphertext[:50]}...")
         print(f"Shared secret 1: {shared_secret1}")
         
         # Decapsulate
-        shared_secret2 = kyber_decapsulate(private_key, ciphertext, variant)
+        shared_secret2 = hqc_decapsulate(private_key, ciphertext, variant)
         print(f"Shared secret 2: {shared_secret2}")
         
         # Verify shared secrets match
         print(f"Shared secrets match: {shared_secret1 == shared_secret2}")
         
         # Get algorithm info
-        info = get_kyber_info(variant)
+        info = get_hqc_info(variant)
         print(f"Algorithm: {info['algorithm_name']}")
         print(f"Security level: {info['security_level']} bits")
         print(f"NIST level: {info['nist_level']}")
+        print(f"Cryptographic base: {info['cryptographic_base']}")
     
     print("\n=== Supported Variants ===")
-    variants = get_supported_kyber_variants()
+    variants = get_supported_hqc_variants()
     for name, info in variants.items():
         print(f"{name}: {info['name']} (Security: {info['security_level']} bits)")

@@ -1,268 +1,194 @@
 """
-Dilithium post-quantum digital signature implementation.
-This is a simplified implementation for demonstration purposes.
-In production, use a certified library like liboqs or pqcrypto.
+ML-DSA (Dilithium) post-quantum digital signature implementation.
+This uses the certified pqcrypto library for NIST-approved algorithms.
 """
-import os
-import hashlib
-import secrets
-from typing import Tuple, Optional, Dict, Any
-import numpy as np
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.backends import default_backend
+import base64
 import logging
+from typing import Tuple, Optional, Dict, Any
+
+from pqcrypto.sign import ml_dsa_44, ml_dsa_65, ml_dsa_87
 
 logger = logging.getLogger(__name__)
 
-class DilithiumParams:
-    """Dilithium parameter sets for different security levels."""
+class DilithiumVariant:
+    """Dilithium/ML-DSA variant configurations."""
     
     DILITHIUM_2 = {
-        "n": 256,
-        "k": 4,
-        "l": 4,
-        "q": 8380417,
-        "eta": 2,
-        "tau": 39,
-        "beta": 78,
-        "gamma1": 2**17,
-        "gamma2": (8380417 - 1) // 88,
-        "omega": 80,
-        "security_level": 128
+        "name": "ML-DSA-44",
+        "module": ml_dsa_44,
+        "security_level": 128,
+        "public_key_size": ml_dsa_44.PUBLIC_KEY_SIZE,
+        "private_key_size": ml_dsa_44.SECRET_KEY_SIZE,
+        "signature_size": ml_dsa_44.SIGNATURE_SIZE,
+        "nist_level": 2,
+        "original_name": "Dilithium2"
     }
     
     DILITHIUM_3 = {
-        "n": 256,
-        "k": 6,
-        "l": 5,
-        "q": 8380417,
-        "eta": 4,
-        "tau": 49,
-        "beta": 196,
-        "gamma1": 2**19,
-        "gamma2": (8380417 - 1) // 32,
-        "omega": 55,
-        "security_level": 192
+        "name": "ML-DSA-65",
+        "module": ml_dsa_65,
+        "security_level": 192,
+        "public_key_size": ml_dsa_65.PUBLIC_KEY_SIZE,
+        "private_key_size": ml_dsa_65.SECRET_KEY_SIZE,
+        "signature_size": ml_dsa_65.SIGNATURE_SIZE,
+        "nist_level": 3,
+        "original_name": "Dilithium3"
     }
     
     DILITHIUM_5 = {
-        "n": 256,
-        "k": 8,
-        "l": 7,
-        "q": 8380417,
-        "eta": 2,
-        "tau": 60,
-        "beta": 120,
-        "gamma1": 2**19,
-        "gamma2": (8380417 - 1) // 32,
-        "omega": 75,
-        "security_level": 256
+        "name": "ML-DSA-87",
+        "module": ml_dsa_87,
+        "security_level": 256,
+        "public_key_size": ml_dsa_87.PUBLIC_KEY_SIZE,
+        "private_key_size": ml_dsa_87.SECRET_KEY_SIZE,
+        "signature_size": ml_dsa_87.SIGNATURE_SIZE,
+        "nist_level": 5,
+        "original_name": "Dilithium5"
     }
 
 class DilithiumSignature:
-    """Dilithium Digital Signature Algorithm."""
+    """ML-DSA (Dilithium) Digital Signature Algorithm using certified pqcrypto library."""
     
     def __init__(self, variant: str = "dilithium3"):
-        """Initialize Dilithium with specified variant."""
+        """Initialize ML-DSA with specified variant."""
         self.variant = variant
-        self.params = self._get_params(variant)
-        self.backend = default_backend()
+        self.config = self._get_config(variant)
+        self.module = self.config["module"]
         
-    def _get_params(self, variant: str) -> Dict[str, Any]:
-        """Get parameters for specified Dilithium variant."""
-        param_map = {
-            "dilithium2": DilithiumParams.DILITHIUM_2,
-            "dilithium3": DilithiumParams.DILITHIUM_3,
-            "dilithium5": DilithiumParams.DILITHIUM_5
+        logger.info(f"Initialized {self.config['name']} with security level {self.config['security_level']}")
+        
+    def _get_config(self, variant: str) -> Dict[str, Any]:
+        """Get configuration for specified ML-DSA variant."""
+        variant_map = {
+            "dilithium2": DilithiumVariant.DILITHIUM_2,
+            "dilithium3": DilithiumVariant.DILITHIUM_3,
+            "dilithium5": DilithiumVariant.DILITHIUM_5,
+            "ml_dsa_44": DilithiumVariant.DILITHIUM_2,
+            "ml_dsa_65": DilithiumVariant.DILITHIUM_3,
+            "ml_dsa_87": DilithiumVariant.DILITHIUM_5
         }
         
-        if variant not in param_map:
-            raise ValueError(f"Unsupported Dilithium variant: {variant}")
+        if variant not in variant_map:
+            raise ValueError(f"Unsupported ML-DSA/Dilithium variant: {variant}. "
+                           f"Supported variants: {list(variant_map.keys())}")
         
-        return param_map[variant]
+        return variant_map[variant]
     
     def generate_keypair(self) -> Tuple[bytes, bytes]:
-        """Generate a Dilithium keypair."""
+        """Generate an ML-DSA keypair."""
         try:
-            # Generate random seed
-            seed = secrets.token_bytes(32)
+            public_key, private_key = self.module.generate_keypair()
             
-            # Generate signing key and verification key
-            signing_key = self._generate_signing_key(seed)
-            verification_key = self._generate_verification_key(signing_key)
+            logger.info(f"Generated {self.config['name']} keypair")
+            logger.debug(f"Public key: {len(public_key)} bytes, "
+                        f"Private key: {len(private_key)} bytes")
             
-            logger.info(f"Generated Dilithium-{self.params['security_level']} keypair")
-            
-            return verification_key, signing_key
+            return public_key, private_key
             
         except Exception as e:
-            logger.error(f"Dilithium keypair generation failed: {e}")
+            logger.error(f"ML-DSA keypair generation failed: {e}")
             raise
     
-    def _generate_signing_key(self, seed: bytes) -> bytes:
-        """Generate signing key from seed."""
-        # Simulate signing key generation
-        # In a real implementation, this would generate polynomial matrices
-        signing_key_size = 32 + (self.params["l"] + self.params["k"]) * self.params["n"] * 4
-        
-        # Use HKDF to derive signing key from seed
-        hkdf = HKDF(
-            algorithm=hashes.SHA256(),
-            length=signing_key_size,
-            salt=None,
-            info=b"dilithium_signing_key",
-            backend=self.backend
-        )
-        
-        signing_key = hkdf.derive(seed)
-        return signing_key
-    
-    def _generate_verification_key(self, signing_key: bytes) -> bytes:
-        """Generate verification key from signing key."""
-        # Simulate verification key generation
-        # In a real implementation, this would compute t = A*s1 + s2
-        verification_key_size = 32 + self.params["k"] * self.params["n"] * 4
-        
-        # Use HKDF to derive verification key
-        hkdf = HKDF(
-            algorithm=hashes.SHA256(),
-            length=verification_key_size,
-            salt=None,
-            info=b"dilithium_verification_key",
-            backend=self.backend
-        )
-        
-        verification_key = hkdf.derive(signing_key)
-        return verification_key
-    
-    def sign(self, message: bytes, signing_key: bytes) -> bytes:
-        """Sign a message using the signing key."""
+    def sign(self, message: bytes, private_key: bytes) -> bytes:
+        """Sign a message using the private key."""
         try:
-            # Hash the message
-            digest = hashlib.sha256(message).digest()
+            if len(private_key) != self.config["private_key_size"]:
+                raise ValueError(f"Invalid private key size: {len(private_key)}, "
+                               f"expected {self.config['private_key_size']}")
             
-            # Generate signature
-            signature = self._generate_signature(digest, signing_key)
+            signature = self.module.sign(private_key, message)
             
-            logger.info(f"Dilithium signature generated")
+            logger.info(f"ML-DSA signature generated")
+            logger.debug(f"Message: {len(message)} bytes, "
+                        f"Signature: {len(signature)} bytes")
             
             return signature
             
         except Exception as e:
-            logger.error(f"Dilithium signing failed: {e}")
+            logger.error(f"ML-DSA signing failed: {e}")
             raise
     
-    def _generate_signature(self, digest: bytes, signing_key: bytes) -> bytes:
-        """Generate signature for message digest."""
-        # Simulate signature generation
-        # In a real implementation, this would perform complex polynomial arithmetic
-        
-        # Generate random nonce
-        nonce = secrets.token_bytes(32)
-        
-        # Calculate signature size
-        signature_size = self.params["l"] * self.params["n"] * 4 + 32
-        
-        # Create signature using HKDF
-        hkdf = HKDF(
-            algorithm=hashes.SHA256(),
-            length=signature_size,
-            salt=nonce,
-            info=b"dilithium_signature",
-            backend=self.backend
-        )
-        
-        input_data = signing_key + digest
-        signature = hkdf.derive(input_data)
-        
-        return signature
-    
-    def verify(self, message: bytes, signature: bytes, verification_key: bytes) -> bool:
-        """Verify a signature using the verification key."""
+    def verify(self, message: bytes, signature: bytes, public_key: bytes) -> bool:
+        """Verify a signature using the public key."""
         try:
-            # Hash the message
-            digest = hashlib.sha256(message).digest()
+            if len(public_key) != self.config["public_key_size"]:
+                raise ValueError(f"Invalid public key size: {len(public_key)}, "
+                               f"expected {self.config['public_key_size']}")
             
-            # Verify signature
-            is_valid = self._verify_signature(digest, signature, verification_key)
+            if len(signature) != self.config["signature_size"]:
+                raise ValueError(f"Invalid signature size: {len(signature)}, "
+                               f"expected {self.config['signature_size']}")
             
-            logger.info(f"Dilithium signature verification: {'valid' if is_valid else 'invalid'}")
+            # pqcrypto verify throws exception on invalid signature
+            self.module.verify(public_key, message, signature)
             
-            return is_valid
+            logger.info(f"ML-DSA signature verification: valid")
+            return True
             
         except Exception as e:
-            logger.error(f"Dilithium verification failed: {e}")
-            return False
-    
-    def _verify_signature(self, digest: bytes, signature: bytes, verification_key: bytes) -> bool:
-        """Verify signature for message digest."""
-        # Simulate signature verification
-        # In a real implementation, this would perform complex polynomial arithmetic
-        
-        try:
-            # Basic validation: check signature length
-            expected_size = self.params["l"] * self.params["n"] * 4 + 32
-            if len(signature) != expected_size:
-                return False
-            
-            # Simulate verification process
-            # In practice, this would check the signature equation
-            
-            # For simulation, we'll use a deterministic check
-            test_signature = self._generate_signature(digest, b"test_key" + verification_key[:32])
-            
-            # Simple length-based verification (not cryptographically secure)
-            return len(signature) == len(test_signature)
-            
-        except Exception:
+            logger.warning(f"ML-DSA signature verification: invalid - {e}")
             return False
     
     def get_key_sizes(self) -> Dict[str, int]:
         """Get key and signature sizes for current parameters."""
         return {
-            "signing_key_size": 32 + (self.params["l"] + self.params["k"]) * self.params["n"] * 4,
-            "verification_key_size": 32 + self.params["k"] * self.params["n"] * 4,
-            "signature_size": self.params["l"] * self.params["n"] * 4 + 32
+            "public_key_size": self.config["public_key_size"],
+            "private_key_size": self.config["private_key_size"],
+            "signature_size": self.config["signature_size"]
         }
     
     def get_security_level(self) -> int:
         """Get security level in bits."""
-        return self.params["security_level"]
+        return self.config["security_level"]
+    
+    def get_nist_level(self) -> int:
+        """Get NIST security level."""
+        return self.config["nist_level"]
+    
+    def get_algorithm_name(self) -> str:
+        """Get the official algorithm name."""
+        return self.config["name"]
+    
+    def get_original_name(self) -> str:
+        """Get the original algorithm name."""
+        return self.config["original_name"]
     
     def serialize_public_key(self, public_key: bytes) -> str:
-        """Serialize public key to string."""
-        import base64
+        """Serialize public key to base64 string."""
         return base64.b64encode(public_key).decode('utf-8')
     
     def deserialize_public_key(self, public_key_str: str) -> bytes:
-        """Deserialize public key from string."""
-        import base64
-        return base64.b64decode(public_key_str.encode('utf-8'))
+        """Deserialize public key from base64 string."""
+        try:
+            return base64.b64decode(public_key_str.encode('utf-8'))
+        except Exception as e:
+            raise ValueError(f"Invalid public key format: {e}")
     
     def serialize_private_key(self, private_key: bytes) -> str:
-        """Serialize private key to string."""
-        import base64
+        """Serialize private key to base64 string."""
         return base64.b64encode(private_key).decode('utf-8')
     
     def deserialize_private_key(self, private_key_str: str) -> bytes:
-        """Deserialize private key from string."""
-        import base64
-        return base64.b64decode(private_key_str.encode('utf-8'))
+        """Deserialize private key from base64 string."""
+        try:
+            return base64.b64decode(private_key_str.encode('utf-8'))
+        except Exception as e:
+            raise ValueError(f"Invalid private key format: {e}")
     
     def serialize_signature(self, signature: bytes) -> str:
-        """Serialize signature to string."""
-        import base64
+        """Serialize signature to base64 string."""
         return base64.b64encode(signature).decode('utf-8')
     
     def deserialize_signature(self, signature_str: str) -> bytes:
-        """Deserialize signature from string."""
-        import base64
-        return base64.b64decode(signature_str.encode('utf-8'))
+        """Deserialize signature from base64 string."""
+        try:
+            return base64.b64decode(signature_str.encode('utf-8'))
+        except Exception as e:
+            raise ValueError(f"Invalid signature format: {e}")
 
-# Convenience functions
+# Convenience functions for backward compatibility
 def generate_dilithium_keypair(variant: str = "dilithium3") -> Tuple[str, str]:
-    """Generate Dilithium keypair and return as base64 strings."""
+    """Generate ML-DSA keypair and return as base64 strings."""
     dilithium = DilithiumSignature(variant)
     public_key, private_key = dilithium.generate_keypair()
     
@@ -272,7 +198,7 @@ def generate_dilithium_keypair(variant: str = "dilithium3") -> Tuple[str, str]:
     )
 
 def dilithium_sign(message: str, private_key_str: str, variant: str = "dilithium3") -> str:
-    """Sign message using Dilithium and return signature as base64."""
+    """Sign message using ML-DSA and return signature as base64."""
     dilithium = DilithiumSignature(variant)
     private_key = dilithium.deserialize_private_key(private_key_str)
     
@@ -282,7 +208,7 @@ def dilithium_sign(message: str, private_key_str: str, variant: str = "dilithium
 
 def dilithium_verify(message: str, signature_str: str, public_key_str: str, 
                     variant: str = "dilithium3") -> bool:
-    """Verify signature using Dilithium."""
+    """Verify signature using ML-DSA."""
     dilithium = DilithiumSignature(variant)
     public_key = dilithium.deserialize_public_key(public_key_str)
     signature = dilithium.deserialize_signature(signature_str)
@@ -290,44 +216,84 @@ def dilithium_verify(message: str, signature_str: str, public_key_str: str,
     return dilithium.verify(message.encode('utf-8'), signature, public_key)
 
 def get_dilithium_info(variant: str = "dilithium3") -> Dict[str, Any]:
-    """Get information about Dilithium variant."""
+    """Get information about ML-DSA variant."""
     dilithium = DilithiumSignature(variant)
     
     return {
         "variant": variant,
+        "algorithm_name": dilithium.get_algorithm_name(),
+        "original_name": dilithium.get_original_name(),
         "security_level": dilithium.get_security_level(),
+        "nist_level": dilithium.get_nist_level(),
         "key_sizes": dilithium.get_key_sizes(),
-        "parameters": dilithium.params,
         "quantum_resistant": True,
         "algorithm_type": "Digital Signature",
+        "standardization": "NIST FIPS 204",
         "description": "NIST-standardized post-quantum digital signature algorithm"
     }
 
-# Example usage
+def get_supported_dilithium_variants() -> Dict[str, Dict[str, Any]]:
+    """Get all supported ML-DSA variants."""
+    return {
+        "dilithium2": {
+            "name": "ML-DSA-44",
+            "original_name": "Dilithium2",
+            "security_level": 128,
+            "nist_level": 2,
+            "key_sizes": DilithiumVariant.DILITHIUM_2
+        },
+        "dilithium3": {
+            "name": "ML-DSA-65",
+            "original_name": "Dilithium3",
+            "security_level": 192,
+            "nist_level": 3,
+            "key_sizes": DilithiumVariant.DILITHIUM_3
+        },
+        "dilithium5": {
+            "name": "ML-DSA-87",
+            "original_name": "Dilithium5",
+            "security_level": 256,
+            "nist_level": 5,
+            "key_sizes": DilithiumVariant.DILITHIUM_5
+        }
+    }
+
+# Example usage and testing
 if __name__ == "__main__":
-    # Test Dilithium implementation
-    print("Testing Dilithium implementation...")
+    print("Testing ML-DSA (Dilithium) certified implementation...")
     
-    # Generate keypair
-    public_key, private_key = generate_dilithium_keypair("dilithium3")
-    print(f"Public key: {public_key[:50]}...")
-    print(f"Private key: {private_key[:50]}...")
+    # Test all variants
+    for variant in ["dilithium2", "dilithium3", "dilithium5"]:
+        print(f"\n=== Testing {variant} ===")
+        
+        # Generate keypair
+        public_key, private_key = generate_dilithium_keypair(variant)
+        print(f"Public key: {public_key[:50]}...")
+        print(f"Private key: {private_key[:50]}...")
+        
+        # Sign message
+        message = "Hello, post-quantum world!"
+        signature = dilithium_sign(message, private_key, variant)
+        print(f"Message: {message}")
+        print(f"Signature: {signature[:50]}...")
+        
+        # Verify signature
+        is_valid = dilithium_verify(message, signature, public_key, variant)
+        print(f"Signature valid: {is_valid}")
+        
+        # Test with wrong message
+        wrong_message = "Hello, classical world!"
+        is_valid_wrong = dilithium_verify(wrong_message, signature, public_key, variant)
+        print(f"Wrong message signature valid: {is_valid_wrong}")
+        
+        # Get algorithm info
+        info = get_dilithium_info(variant)
+        print(f"Algorithm: {info['algorithm_name']}")
+        print(f"Original name: {info['original_name']}")
+        print(f"Security level: {info['security_level']} bits")
+        print(f"NIST level: {info['nist_level']}")
     
-    # Sign message
-    message = "Hello, quantum-resistant world!"
-    signature = dilithium_sign(message, private_key, "dilithium3")
-    print(f"Message: {message}")
-    print(f"Signature: {signature[:50]}...")
-    
-    # Verify signature
-    is_valid = dilithium_verify(message, signature, public_key, "dilithium3")
-    print(f"Signature valid: {is_valid}")
-    
-    # Test with wrong message
-    wrong_message = "Hello, classical world!"
-    is_valid_wrong = dilithium_verify(wrong_message, signature, public_key, "dilithium3")
-    print(f"Wrong message signature valid: {is_valid_wrong}")
-    
-    # Get algorithm info
-    info = get_dilithium_info("dilithium3")
-    print(f"Algorithm info: {info}")
+    print("\n=== Supported Variants ===")
+    variants = get_supported_dilithium_variants()
+    for name, info in variants.items():
+        print(f"{name}: {info['name']} ({info['original_name']}) - Security: {info['security_level']} bits")
