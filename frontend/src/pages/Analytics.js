@@ -50,7 +50,7 @@ const Analytics = () => {
           {change && (
             <div className="flex items-center mt-1">
               {trend === 'up' ? (
-                <TrendingUpIcon className="h-4 w-4 text-green-500" />
+                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDownIcon className="h-4 w-4 text-red-500" />
               )}
