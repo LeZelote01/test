@@ -200,7 +200,7 @@ const Analytics = () => {
                     {threat.trend === 'up' ? (
                       <ArrowTrendingUpIcon className="h-5 w-5 text-red-500" />
                     ) : (
-                      <TrendingDownIcon className="h-5 w-5 text-green-500" />
+                      <ArrowTrendingDownIcon className="h-5 w-5 text-green-500" />
                     )}
                   </div>
                   <div>
