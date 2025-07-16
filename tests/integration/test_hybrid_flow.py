@@ -5,6 +5,7 @@ import pytest
 import sys
 import os
 import asyncio
+import time
 from unittest.mock import patch, MagicMock
 
 # Add parent directories to path
