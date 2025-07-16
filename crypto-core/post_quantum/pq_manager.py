@@ -10,12 +10,12 @@ import time
 import base64
 
 # Import certified algorithm implementations
-from .kyber import KyberKEM, generate_kyber_keypair, kyber_encapsulate, kyber_decapsulate, get_kyber_info
-from .dilithium import DilithiumSignature, generate_dilithium_keypair, dilithium_sign, dilithium_verify, get_dilithium_info
-from .falcon import FalconSignature, generate_falcon_keypair, falcon_sign, falcon_verify, get_falcon_info
-from .sphincs import SphincsSignature, generate_sphincs_keypair, sphincs_sign, sphincs_verify, get_sphincs_info
-from .hqc import HQCKEM, generate_hqc_keypair, hqc_encapsulate, hqc_decapsulate, get_hqc_info
-from .mceliece import McElieceKEM, generate_mceliece_keypair, mceliece_encapsulate, mceliece_decapsulate, get_mceliece_info
+from kyber import KyberKEM, generate_kyber_keypair, kyber_encapsulate, kyber_decapsulate, get_kyber_info
+from dilithium import DilithiumSignature, generate_dilithium_keypair, dilithium_sign, dilithium_verify, get_dilithium_info
+from falcon import FalconSignature, generate_falcon_keypair, falcon_sign, falcon_verify, get_falcon_info
+from sphincs import SphincsSignature, generate_sphincs_keypair, sphincs_sign, sphincs_verify, get_sphincs_info
+from hqc import HQCKEM, generate_hqc_keypair, hqc_encapsulate, hqc_decapsulate, get_hqc_info
+from mceliece import McElieceKEM, generate_mceliece_keypair, mceliece_encapsulate, mceliece_decapsulate, get_mceliece_info
 
 logger = logging.getLogger(__name__)
 
