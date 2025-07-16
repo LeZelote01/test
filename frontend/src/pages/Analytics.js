@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChartBarIcon, TrendingUpIcon, TrendingDownIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 const Analytics = () => {
@@ -50,9 +50,9 @@ const Analytics = () => {
           {change && (
             <div className="flex items-center mt-1">
               {trend === 'up' ? (
-                <TrendingUpIcon className="h-4 w-4 text-green-500" />
+                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
               ) : (
-                <TrendingDownIcon className="h-4 w-4 text-red-500" />
+                <ArrowTrendingDownIcon className="h-4 w-4 text-red-500" />
               )}
               <span className={`text-sm font-medium ml-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
                 {change}
@@ -121,7 +121,7 @@ const Analytics = () => {
           value="99.2%"
           change="+0.5%"
           trend="up"
-          icon={TrendingUpIcon}
+          icon={ArrowTrendingUpIcon}
         />
       </div>
 
@@ -198,9 +198,9 @@ const Analytics = () => {
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
                     {threat.trend === 'up' ? (
-                      <TrendingUpIcon className="h-5 w-5 text-red-500" />
+                      <ArrowTrendingUpIcon className="h-5 w-5 text-red-500" />
                     ) : (
-                      <TrendingDownIcon className="h-5 w-5 text-green-500" />
+                      <ArrowTrendingDownIcon className="h-5 w-5 text-green-500" />
                     )}
                   </div>
                   <div>
