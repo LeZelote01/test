@@ -38,12 +38,19 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting QuantumGate Backend...")
     
-    # Initialize database
-    db_client = AsyncIOMotorClient(settings.mongodb_url)
-    await init_database(db_client)
-    
-    # Set database client for routes
-    app.state.db = db_client[settings.database_name]
+    try:
+        # Initialize database
+        db_client = AsyncIOMotorClient(settings.mongodb_url)
+        # Skip database initialization for now
+        # await init_database(db_client)
+        
+        # Set database client for routes
+        app.state.db = db_client[settings.database_name]
+        
+        logger.info("QuantumGate Backend started successfully")
+    except Exception as e:
+        logger.error(f"Failed to start backend: {e}")
+        raise
     
     yield
     
