@@ -97,8 +97,10 @@ L'utilisateur a demandé de :
 ## Statut du Projet
 - **Structure**: ✅ Projet cloné et structure explorée
 - **Dépendances**: ✅ Backend et frontend installés
+- **Backend**: ✅ Serveur démarré avec succès (http://localhost:8001)
+- **Frontend**: ⚠️ Erreurs de compilation - modules manquants
 - **Configuration**: ⏳ En attente de configuration des variables d'environnement
-- **Tests**: ⏳ En attente de lancement des serveurs pour tests
+- **Tests**: ⏳ En attente de résolution des erreurs frontend
 
 ## Prochaines Étapes
 1. Configuration des variables d'environnement (.env)
