@@ -126,7 +126,9 @@ def create_encryption_operation(user_id: str, operation_type: OperationType,
                                threat_score: Optional[float] = None,
                                quantum_score: Optional[float] = None) -> dict:
     """Create encryption operation dictionary for database insertion."""
+    import uuid
     return {
+        "id": str(uuid.uuid4()),  # Add UUID for id field
         "user_id": user_id,
         "operation_type": operation_type.value,
         "algorithm": algorithm.value,
